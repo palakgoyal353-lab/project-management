@@ -1,12 +1,9 @@
-// Load env variables
-require("dotenv").config({ path: "./.env" });
 
+import 'dotenv/config';
 
-const { defineConfig } = require("prisma/config");
-
-module.exports = defineConfig({
-  schema: "prisma/schema.prisma",
+export default {
+  schema: 'prisma/schema.prisma',
   datasource: {
     url: process.env.DATABASE_URL,
   },
-});
+};
