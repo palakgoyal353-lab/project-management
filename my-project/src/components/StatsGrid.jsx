@@ -1,110 +1,131 @@
-import { FolderOpen, CheckCircle, Users, AlertTriangle } from "lucide-react";
+import { FolderOpen, CheckCircle, ListTodo, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
+function AnimatedNumber({ value }) {
+    const [display, setDisplay] = useState(0);
+    useEffect(() => {
+        let current = 0;
+        if (value === 0) { setDisplay(0); return; }
+        const increment = Math.max(1, Math.floor(value / 30));
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= value) { setDisplay(value); clearInterval(timer); }
+            else setDisplay(current);
+        }, 20);
+        return () => clearInterval(timer);
+    }, [value]);
+    return <span>{display}</span>;
+}
+
 export default function StatsGrid() {
-    const currentWorkspace = useSelector(
-        (state) => state?.workspace?.currentWorkspace || null
-    );
+    const currentWorkspace = useSelector((state) => state?.workspace?.currentWorkspace || null);
 
     const [stats, setStats] = useState({
-        totalProjects: 0,
-        activeProjects: 0,
-        completedProjects: 0,
-        myTasks: 0,
-        overdueIssues: 0,
+        totalProjects: 0, activeProjects: 0,
+        completedTasks: 0, totalTasks: 0, overdueIssues: 0,
     });
 
-    const statCards = [
+    useEffect(() => {
+        if (!currentWorkspace) return;
+        const allTasks = currentWorkspace.projects?.flatMap(p => p.tasks || []) || [];
+        setStats({
+            totalProjects: currentWorkspace.projects?.length || 0,
+            activeProjects: currentWorkspace.projects?.filter(p => p.status !== "CANCELLED" && p.status !== "COMPLETED").length || 0,
+            completedTasks: allTasks.filter(t => t.status === 'DONE').length,
+            totalTasks: allTasks.length,
+            overdueIssues: allTasks.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'DONE').length,
+        });
+    }, [currentWorkspace]);
+
+    const completionRate = stats.totalTasks ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0;
+
+    const cards = [
         {
             icon: FolderOpen,
             title: "Total Projects",
             value: stats.totalProjects,
-            subtitle: `projects in ${currentWorkspace?.name}`,
-            bgColor: "bg-blue-500/10",
-            textColor: "text-white",
+            subtitle: `${stats.activeProjects} active`,
+            iconBg: "bg-blue-500/10 dark:bg-blue-500/15",
+            iconColor: "text-blue-500",
+            gradient: "from-blue-500/5 to-transparent",
+            border: "hover:border-blue-200 dark:hover:border-blue-500/30",
+            trend: "+2 this month",
+            trendUp: true,
         },
         {
             icon: CheckCircle,
-            title: "Completed Projects",
-            value: stats.completedProjects,
-            subtitle: `of ${stats.totalProjects} total`,
-            bgColor: "bg-emerald-500/10",
-            textColor: "text-emerald-500",
+            title: "Tasks Completed",
+            value: stats.completedTasks,
+            subtitle: `${completionRate}% completion rate`,
+            iconBg: "bg-emerald-500/10 dark:bg-emerald-500/15",
+            iconColor: "text-emerald-500",
+            gradient: "from-emerald-500/5 to-transparent",
+            border: "hover:border-emerald-200 dark:hover:border-emerald-500/30",
+            trend: `${completionRate}% rate`,
+            trendUp: completionRate >= 50,
         },
         {
-            icon: Users,
-            title: "My Tasks",
-            value: stats.myTasks,
-            subtitle: "assigned to me",
-            bgColor: "bg-purple-500/10",
-            textColor: "text-purple-500",
+            icon: ListTodo,
+            title: "Total Tasks",
+            value: stats.totalTasks,
+            subtitle: "across all projects",
+            iconBg: "bg-purple-500/10 dark:bg-purple-500/15",
+            iconColor: "text-purple-500",
+            gradient: "from-purple-500/5 to-transparent",
+            border: "hover:border-purple-200 dark:hover:border-purple-500/30",
+            trend: `${stats.totalTasks - stats.completedTasks} remaining`,
+            trendUp: null,
         },
         {
             icon: AlertTriangle,
-            title: "Overdue",
+            title: "Overdue Tasks",
             value: stats.overdueIssues,
-            subtitle: "need attention",
-            bgColor: "bg-amber-500/10",
-            textColor: "text-amber-500",
+            subtitle: "require attention",
+            iconBg: "bg-amber-500/10 dark:bg-amber-500/15",
+            iconColor: "text-amber-500",
+            gradient: "from-amber-500/5 to-transparent",
+            border: "hover:border-amber-200 dark:hover:border-amber-500/30",
+            trend: stats.overdueIssues > 0 ? "Needs attention" : "All on track",
+            trendUp: stats.overdueIssues === 0,
         },
     ];
 
-    useEffect(() => {
-        if (currentWorkspace) {
-            setStats({
-                totalProjects: currentWorkspace.projects.length,
-                activeProjects: currentWorkspace.projects.filter(
-                    (p) => p.status !== "CANCELLED" && p.status !== "COMPLETED"
-                ).length,
-                completedProjects: currentWorkspace.projects
-                    .filter((p) => p.status === "COMPLETED")
-                    .reduce((acc, project) => acc + project.tasks.length, 0),
-                myTasks: currentWorkspace.projects.reduce(
-                    (acc, project) =>
-                        acc +
-                        project.tasks.filter(
-                            (t) => t.assignee?.email === currentWorkspace.owner.email
-                        ).length,
-                    0
-                ),
-                overdueIssues: currentWorkspace.projects.reduce(
-                    (acc, project) =>
-                        acc + project.tasks.filter((t) => t.due_date < new Date()).length,
-                    0
-                ),
-            });
-        }
-    }, [currentWorkspace]);
-
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-9">
-            {statCards.map(
-                ({ icon: Icon, title, value, subtitle, bgColor, textColor }, i) => (
-                    <div key={i} className="bg-white dark:bg-zinc-600 dark:bg-linear-to-br dark:from-zinc-800/70 dark:to-zinc-900/50 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition duration-200 rounded-md" >
-                        <div className="p-6 py-4">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
-                                        {title}
-                                    </p>
-                                    <p className="text-3xl font-bold text-zinc-800 dark:text-white">
-                                        {value}
-                                    </p>
-                                    {subtitle && (
-                                        <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                                            {subtitle}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className={`p-3 rounded-xl ${bgColor} bg-opacity-20`}>
-                                    <Icon size={20} className={textColor} />
-                                </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {cards.map(({ icon: Icon, title, value, subtitle, iconBg, iconColor, gradient, border, trend, trendUp }, i) => (
+                <div
+                    key={i}
+                    className={`relative overflow-hidden bg-white dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50 ${border} rounded-2xl shadow-sm card-hover transition-colors animate-fade-up delay-${(i+1)*100}`}
+                >
+                    {/* Gradient wash */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} pointer-events-none`} />
+
+                    <div className="relative p-5">
+                        <div className="flex items-start justify-between mb-4">
+                            <div className={`p-2.5 rounded-xl ${iconBg}`}>
+                                <Icon size={18} className={iconColor} />
                             </div>
+                            {trendUp !== null && (
+                                <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${trendUp
+                                    ? 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10'
+                                    : 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/10'}`}>
+                                    {trendUp ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                                </div>
+                            )}
                         </div>
+
+                        <p className="text-3xl font-bold text-zinc-800 dark:text-white mb-1 font-display">
+                            <AnimatedNumber value={value} />
+                        </p>
+                        <p className="text-sm font-medium text-zinc-600 dark:text-zinc-300">{title}</p>
+                        <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{subtitle}</p>
+
+                        {/* Subtle bottom border accent */}
+                        <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${iconColor.replace('text-', 'bg-')} opacity-30`} />
                     </div>
-                )
-            )}
+                </div>
+            ))}
         </div>
     );
 }

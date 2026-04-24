@@ -1,52 +1,46 @@
-// import express from 'express'
-// import 'dotenv/config'
-// import cors from 'cors'
-// import { clerkMiddleware } from '@clerk/express'
-// import { serve } from "inngest/express";
-// import { inngest, functions } from "../inngest/index.js"
-
-// const app = express();
-
-// app.use(express.json());
-// app.use(cors())
-// app.use(clerkMiddleware());
-
-// const PORT = process.env.PORT || 3000
-
-
-// app.get("/", (req, res) => {
-//   console.log("Server is working ✅");
-// });
-
-// app.get("/test-db", async (req, res) => {
-//   try {
-//     const users = await prisma.user.findMany();
-//     res.json(users);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send(error.message);
-//   }
-// });
-
-// app.get('/', (req, res)=> res.send('server is live !'));
-// app.use("/api/inngest", serve({ client: inngest, functions }));
-
-
-// export default app;
-
-
-
-
 import express from "express";
 import cors from "cors";
+
+import workspaceRoutes from "./routes/workspace.routes.js";
+import projectRoutes from "./routes/project.routes.js";
+import taskRoutes from "./routes/task.routes.js";
 
 const app = express();
 
 app.use(express.json());
-app.use(cors());
 
-app.get("/mohan", (req, res) => {
-  res.send("Server is live ✅");
+// CORS — allow local dev + Vercel production
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  process.env.FRONTEND_URL, // set this on Railway
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // allow requests with no origin (curl, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.some(o => origin.startsWith(o))) return callback(null, true);
+    // allow any vercel.app subdomain
+    if (/\.vercel\.app$/.test(origin)) return callback(null, true);
+    callback(new Error(`CORS blocked: ${origin}`));
+  },
+  credentials: true,
+}));
+
+// Health check
+app.get("/", (req, res) => res.json({ status: "ok", message: "ProjectFlow API is live ✅" }));
+app.get("/health", (req, res) => res.json({ status: "ok" }));
+
+// API Routes
+app.use("/api/workspaces", workspaceRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/tasks", taskRoutes);
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
 
 export default app;

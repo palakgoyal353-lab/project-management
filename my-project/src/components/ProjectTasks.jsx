@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { deleteTask, updateTask } from "../feature/WorkspaceSlice";
+import { deleteTaskAsync, updateTaskAsync } from "../feature/WorkspaceSlice";
 import { Bug, CalendarIcon, GitCommit, MessageSquare, Square, Trash, XIcon, Zap } from "lucide-react";
 
 const typeIcons = {
@@ -63,7 +63,7 @@ const ProjectTasks = ({ tasks }) => {
 
             let updatedTask = structuredClone(tasks.find((t) => t.id === taskId));
             updatedTask.status = newStatus;
-            dispatch(updateTask(updatedTask));
+            dispatch(updateTaskAsync(updatedTask));
 
             toast.dismissAll();
             toast.success("Task status updated successfully");
@@ -83,7 +83,7 @@ const ProjectTasks = ({ tasks }) => {
             //  Simulate API call
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
-            dispatch(deleteTask(selectedTasks));
+            dispatch(deleteTaskAsync(selectedTasks));
 
             toast.dismissAll();
             toast.success("Tasks deleted successfully");

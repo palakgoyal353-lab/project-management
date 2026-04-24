@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { XIcon } from "lucide-react";
-import { useSelector } from "react-redux";
-
+import { useSelector, useDispatch } from "react-redux";
+import { addProjectAsync } from "../feature/WorkspaceSlice";
 const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
 
     const { currentWorkspace } = useSelector((state) => state.workspace);
@@ -20,9 +20,23 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const dispatch = useDispatch();
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+        if (!currentWorkspace) return;
+        setIsSubmitting(true);
+        try {
+            await dispatch(addProjectAsync({ ...formData, workspaceId: currentWorkspace.id })).unwrap();
+            setIsDialogOpen(false);
+            setFormData({
+                name: "", description: "", status: "PLANNING", priority: "MEDIUM",
+                start_date: "", end_date: "", team_members: [], team_lead: "", progress: 0,
+            });
+        } catch (error) {
+            console.error("Failed to create project", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const removeTeamMember = (email) => {

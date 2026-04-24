@@ -1,14 +1,23 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Toaster } from 'react-hot-toast'
 import { Route, Routes } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { fetchWorkspaces } from './feature/WorkspaceSlice'
 import Layout from './pages/Layout'
 import Dashboard from './pages/Dashboard'
 import Team from './pages/Team'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import TaskDetail from './pages/TaskDetail'
+import Settings from './pages/Settings'
 
 const App = () => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchWorkspaces());
+  }, [dispatch]);
+
   return (
    <>
      <Toaster/>
@@ -19,6 +28,7 @@ const App = () => {
       <Route path='/projects' element={<Projects/>}/>
       <Route path='/projectdetail' element={<ProjectDetail/>}/>
       <Route path='/taskdetail' element={<TaskDetail/>}/>
+      <Route path='/settings' element={<Settings/>}/>
       </Route>
      </Routes>
    </>
