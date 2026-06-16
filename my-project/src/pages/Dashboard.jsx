@@ -7,6 +7,7 @@ import ProjectOverview from '../components/ProjectOverview'
 import RecentActivity from '../components/RecentActivity'
 import TasksSummary from '../components/TasksSummary'
 import CreateProjectDialog from '../components/CreateProjectDialog'
+import { useRBAC, ROLES } from '../hooks/useRBAC'
 
 // Animated number counter
 function CountUp({ end, duration = 1200 }) {
@@ -63,6 +64,7 @@ const Dashboard = () => {
     const { user } = useUser()
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const { currentWorkspace } = useSelector(state => state.workspace)
+    const { role, canCreateProject } = useRBAC()
 
     const hour = new Date().getHours()
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
@@ -83,7 +85,7 @@ const Dashboard = () => {
         { icon: CheckCircle2, label: 'Done today', value: completedTasks, color: '#34d399', spark: [1,2,3,2,4,3,5] },
         { icon: Clock,        label: 'In progress', value: inProgress,    color: '#f59e0b', spark: [3,2,4,3,2,4,2] },
         { icon: TrendingUp,   label: 'Overdue',     value: overdue,       color: '#f87171', spark: [2,3,1,2,3,1,2] },
-        { icon: Users,        label: 'Members',     value: totalMembers,  color: '#a78bfa', spark: [1,1,2,2,3,3,3] },
+        ...(role !== ROLES.MEMBER ? [{ icon: Users, label: 'Members', value: totalMembers, color: '#a78bfa', spark: [1,1,2,2,3,3,3] }] : []),
     ]
 
     return (
@@ -113,6 +115,9 @@ const Dashboard = () => {
                                     </span>
                                     Live Dashboard
                                 </span>
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-500/30 text-blue-200 border border-blue-400/20 capitalize font-mono">
+                                    Role: {role?.replace('_', ' ').toLowerCase()}
+                                </span>
                                 <span className="text-blue-300/60 text-xs">
                                     {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                                 </span>
@@ -141,7 +146,7 @@ const Dashboard = () => {
                     </div>
 
                     {/* Hero stat cards */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className={`grid grid-cols-2 ${heroStats.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-3`}>
                         {heroStats.map(({ icon: Icon, label, value, color, spark }, i) => (
                             <div key={label}
                                 className={`glass rounded-xl p-4 animate-fade-up delay-${(i+1)*100} card-hover`}>
@@ -161,12 +166,6 @@ const Dashboard = () => {
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-3 mt-6">
-                        <button
-                            onClick={() => setIsDialogOpen(true)}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-indigo-700 font-semibold text-sm hover:bg-blue-50 transition shadow-lg hover:shadow-xl"
-                        >
-                            <Plus size={16} /> New Project
-                        </button>
                         <div className="flex items-center gap-1.5 text-blue-200/60 text-sm">
                             <Layers size={14} />
                             <span>{totalProjects} active project{totalProjects !== 1 ? 's' : ''}</span>

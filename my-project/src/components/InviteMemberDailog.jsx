@@ -104,7 +104,10 @@ const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                             className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/30 text-sm transition"
                         >
                             <option value="MEMBER">Member</option>
-                            <option value="ADMIN">Admin</option>
+                            <option value="TEAM_LEAD">Team Lead</option>
+                            <option value="MANAGER">Manager</option>
+                            <option value="IT">IT</option>
+                            <option value="ADMIN_IT">Admin IT</option>
                         </select>
                     </div>
 

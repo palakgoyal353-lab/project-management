@@ -16,19 +16,19 @@ const Layout = () => {
     const { isLoaded, user } = useUser()
 
     useEffect(() => {
-        dispatch(loadTheme())
+        dispatch(loadTheme()) 
     }, [])
 
-    useEffect(() => {
+    useEffect(() => {  
         if (isLoaded && user) {
             dispatch(fetchWorkspaces())
         }
     }, [isLoaded, user])
 
     if (!isLoaded) return (
-        <div className='flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-zinc-950 dark:to-zinc-900'>
+        <div className='flex items-center justify-center h-screen bg-gradient-to from-black to-blue-50 dark:from-zinc-950 dark:to-zinc-900'>
             <div className='flex flex-col items-center gap-4'>
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl animate-float">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl animate-float">
                     <Zap className="size-7 text-white" />
                 </div>
                 <div className='flex flex-col items-center gap-2'>
@@ -44,9 +44,9 @@ const Layout = () => {
     )
 
     if (loading) return (
-        <div className='flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-zinc-950 dark:to-zinc-900'>
+        <div className='flex items-center justify-center h-screen bg-gradient-to from-black to-blue-50 dark:from-zinc-950 dark:to-zinc-900'>
             <div className='flex flex-col items-center gap-4'>
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl">
                     <Zap className="size-7 text-white animate-pulse" />
                 </div>
                 <p className='text-sm font-medium text-zinc-500 dark:text-zinc-400'>Loading workspace...</p>

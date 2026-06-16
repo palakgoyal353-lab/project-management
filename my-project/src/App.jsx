@@ -10,6 +10,7 @@ import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import TaskDetail from './pages/TaskDetail'
 import Settings from './pages/Settings'
+import DatabaseViewer from './pages/DatabaseViewer'
 
 const App = () => {
   const dispatch = useDispatch();
@@ -29,6 +30,7 @@ const App = () => {
       <Route path='/projectdetail' element={<ProjectDetail/>}/>
       <Route path='/taskdetail' element={<TaskDetail/>}/>
       <Route path='/settings' element={<Settings/>}/>
+      <Route path='/database' element={<DatabaseViewer/>}/>
       </Route>
      </Routes>
    </>

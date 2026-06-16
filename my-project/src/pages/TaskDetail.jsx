@@ -16,7 +16,6 @@ const TaskDetails = () => {
     const [newComment, setNewComment] = useState("");
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-
     const { currentWorkspace } = useSelector((state) => state.workspace);
 
     const fetchTaskDetails = () => {

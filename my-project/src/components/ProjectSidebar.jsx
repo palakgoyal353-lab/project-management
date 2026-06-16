@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { ChevronRightIcon, SettingsIcon, KanbanIcon, ChartColumnIcon, CalendarIcon, ArrowRightIcon } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { useRBAC, ROLES } from '../hooks/useRBAC';
 
 const ProjectSidebar = () => {
     const location = useLocation();
@@ -11,13 +12,14 @@ const ProjectSidebar = () => {
     const projects = useSelector(
         (state) => state?.workspace?.currentWorkspace?.projects || []
     );
+    const { role } = useRBAC();
 
     // FIX: Use correct route /projectdetail (not /projectsDetail)
     const getProjectSubItems = (projectId) => [
         { title: 'Tasks', icon: KanbanIcon, url: `/projectdetail?id=${projectId}&tab=tasks` },
         { title: 'Analytics', icon: ChartColumnIcon, url: `/projectdetail?id=${projectId}&tab=analytics` },
         { title: 'Calendar', icon: CalendarIcon, url: `/projectdetail?id=${projectId}&tab=calendar` },
-        { title: 'Settings', icon: SettingsIcon, url: `/projectdetail?id=${projectId}&tab=settings` },
+        ...(role !== ROLES.MEMBER ? [{ title: 'Settings', icon: SettingsIcon, url: `/projectdetail?id=${projectId}&tab=settings` }] : []),
     ];
 
     const toggleProject = (id) => {

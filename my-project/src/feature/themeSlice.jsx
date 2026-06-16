@@ -9,21 +9,52 @@ const themeSlice = createSlice({
     initialState,
     reducers: {
         toggleTheme: (state) => {
-            const theme = state.theme === "light" ? "dark" : "light";
+            let currentIsDark = document.documentElement.classList.contains("dark");
+            const theme = currentIsDark ? "light" : "dark";
             localStorage.setItem("theme", theme);
-            document.documentElement.classList.toggle("dark");
+            if (theme === "dark") {
+                document.documentElement.classList.add("dark");
+            } else {
+                document.documentElement.classList.remove("dark");
+            }
             state.theme = theme;
         },
         setTheme: (state, action) => {
-            state.theme = action.payload;
+            const theme = action.payload;
+            state.theme = theme;
+            localStorage.setItem("theme", theme);
+
+            let isDark = false;
+            if (theme === "system") {
+                isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            } else {
+                isDark = theme === "dark";
+            }
+
+            if (isDark) {
+                document.documentElement.classList.add("dark");
+            } else {
+                document.documentElement.classList.remove("dark");
+            }
         },
         loadTheme: (state) => {
-            const theme = localStorage.getItem("theme");
-            if (theme) {
-                state.theme = theme;
-                if (theme === "dark") {
-                    document.documentElement.classList.add("dark");
-                }
+            let theme = localStorage.getItem("theme");
+            if (!theme) {
+                theme = "system";
+            }
+            state.theme = theme;
+
+            let isDark = false;
+            if (theme === "system") {
+                isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            } else {
+                isDark = theme === "dark";
+            }
+
+            if (isDark) {
+                document.documentElement.classList.add("dark");
+            } else {
+                document.documentElement.classList.remove("dark");
             }
         },
     },

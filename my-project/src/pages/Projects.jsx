@@ -3,8 +3,10 @@ import { useSelector } from "react-redux";
 import { Plus, Search, FolderOpen } from "lucide-react";
 import ProjectCard from "../components/ProjectCard";
 import CreateProjectDialog from "../components/CreateProjectDialog";
+import { useRBAC } from "../hooks/useRBAC";
 
 export default function Projects() {
+    const { canCreateProject } = useRBAC();
 
     const projects = useSelector(
         (state) => state?.workspace?.currentWorkspace?.projects || []
@@ -43,12 +45,14 @@ export default function Projects() {
                         {projects.length} project{projects.length !== 1 ? 's' : ''} in this workspace
                     </p>
                 </div>
-                <button
-                    onClick={() => setIsDialogOpen(true)}
-                    className="flex items-center px-4 py-2.5 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition font-medium shadow-sm"
-                >
-                    <Plus className="size-4 mr-2" /> New Project
-                </button>
+                {canCreateProject && (
+                    <button
+                        onClick={() => setIsDialogOpen(true)}
+                        className="flex items-center px-4 py-2.5 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition font-medium shadow-sm"
+                    >
+                        <Plus className="size-4 mr-2" /> New Project
+                    </button>
+                )}
                 <CreateProjectDialog isDialogOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} />
             </div>
 
@@ -92,7 +96,7 @@ export default function Projects() {
                         <p className="text-gray-500 dark:text-zinc-400 mb-6 text-sm">
                             {projects.length === 0 ? "Create your first project to get started" : "Try adjusting your search or filters"}
                         </p>
-                        {projects.length === 0 && (
+                        {projects.length === 0 && canCreateProject && (
                             <button
                                 onClick={() => setIsDialogOpen(true)}
                                 className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition"

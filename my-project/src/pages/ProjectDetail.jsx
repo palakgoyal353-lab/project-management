@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeftIcon, PlusIcon, SettingsIcon, BarChart3Icon, CalendarIcon, FileStackIcon, ZapIcon } from "lucide-react";
 import ProjectAnalytics from "../components/ProjectAnalytics";
 import ProjectSettings from "../components/ProjectSettings";
+import { useRBAC } from "../hooks/useRBAC";
 
 import ProjectTasks from "../components/ProjectTasks";
 import CreateTaskDialog from "../components/CreateTaskDailog";
@@ -17,6 +18,7 @@ export default function ProjectDetail() {
 
     const navigate = useNavigate();
     const projects = useSelector((state) => state?.workspace?.currentWorkspace?.projects || []);
+    const { canCreateTask, canManageProjectSettings } = useRBAC();
 
     const [project, setProject] = useState(null);
     const [tasks, setTasks] = useState([]);
@@ -69,10 +71,12 @@ export default function ProjectDetail() {
                         </span>
                     </div>
                 </div>
-                <button onClick={() => setShowCreateTask(true)} className="flex items-center gap-2 px-5 py-2 text-sm rounded bg-linear-to-br from-blue-500 to-blue-600 text-white" >
-                    <PlusIcon className="size-4" />
-                    New Task
-                </button>
+                {canCreateTask && (
+                    <button onClick={() => setShowCreateTask(true)} className="flex items-center gap-2 px-5 py-2 text-sm rounded bg-linear-to-br from-blue-500 to-blue-600 text-white" >
+                        <PlusIcon className="size-4" />
+                        New Task
+                    </button>
+                )}
             </div>
 
             {/* Info Cards */}
@@ -100,7 +104,7 @@ export default function ProjectDetail() {
                         { key: "tasks", label: "Tasks", icon: FileStackIcon },
                         { key: "calendar", label: "Calendar", icon: CalendarIcon },
                         { key: "analytics", label: "Analytics", icon: BarChart3Icon },
-                        { key: "settings", label: "Settings", icon: SettingsIcon },
+                        ...(canManageProjectSettings ? [{ key: "settings", label: "Settings", icon: SettingsIcon }] : []),
                     ].map((tabItem) => (
                         <button key={tabItem.key} onClick={() => { setActiveTab(tabItem.key); setSearchParams({ id: id, tab: tabItem.key }) }} className={`flex items-center gap-2 px-4 py-2 text-sm transition-all ${activeTab === tabItem.key ? "bg-zinc-100 dark:bg-zinc-800/80" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"}`} >
                             <tabItem.icon className="size-3.5" />
@@ -125,7 +129,7 @@ export default function ProjectDetail() {
                             <ProjectCalendar tasks={tasks} />
                         </div>
                     )}
-                    {activeTab === "settings" && (
+                    {activeTab === "settings" && canManageProjectSettings && (
                         <div className=" dark:bg-zinc-900/10 rounded max-w-6xl">
                             <ProjectSettings project={project} />
                         </div>

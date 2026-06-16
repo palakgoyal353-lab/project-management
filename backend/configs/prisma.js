@@ -1,58 +1,23 @@
-
-
 import 'dotenv/config';
-import { PrismaClient } from "@prisma/client";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import { neonConfig } from "@neondatabase/serverless";
+import { PrismaClient } from '@prisma/client';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
 const globalForPrisma = globalThis;
 
-const adapter = new PrismaNeon({
-  connectionString: process.env.DATABASE_URL,
-});
+function createPrismaClient() {
+  const adapter = new PrismaBetterSqlite3({
+    url: process.env.DATABASE_URL || 'file:./dev.db',
+  });
 
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({ adapter });
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  return new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  });
 }
 
+export const prisma =
+  globalForPrisma.prisma ?? createPrismaClient();
 
-
-
-
-// import { PrismaClient } from '@prisma/client';
-// import { PrismaNeon } from '@prisma/adapter-neon';
-// import { neonConfig } from '@neondatabase/serverless';
-// // import ws from 'ws';
-// // neonConfig.webSocketConstructor=ws;
-
-
-// const adapter = new PrismaNeon({
-//   connectionString: process.env.DATABASE_URL,
-// });
-
-// const prisma = new PrismaClient({ adapter });
-
-// export default prisma;
-
-
-
-// import pkg from '@prisma/client';
-// const { PrismaClient } = pkg;
-
-// import { PrismaNeon } from '@prisma/adapter-neon';
-// import { neonConfig } from '@neondatabase/serverless';
-// import ws from 'ws';
-
-// neonConfig.webSocketConstructor = ws;
-
-// const adapter = new PrismaNeon({
-//   connectionString: process.env.DATABASE_URL,
-// });
-
-// const prisma = new PrismaClient({ adapter });
-
-// export default prisma;
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}

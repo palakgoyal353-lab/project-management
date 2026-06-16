@@ -2,15 +2,18 @@ import { useEffect, useRef } from 'react'
 import { NavLink } from 'react-router-dom'
 import MyTasksSidebar from './MyTasksSidebar'
 import ProjectSidebar from './ProjectSidebar'
-import { FolderOpenIcon, LayoutDashboardIcon, SettingsIcon, UsersIcon, Zap } from 'lucide-react'
+import { DatabaseIcon, FolderOpenIcon, LayoutDashboardIcon, SettingsIcon, UsersIcon, Zap } from 'lucide-react'
 import WorkspaceDropdown from './WorkspaceDropdown'
+import { useRBAC } from '../hooks/useRBAC'
+import PersonalRBACBox from './PersonalRBACBox'
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
+    const { canManageWorkspaceSettings, canAccessDatabaseViewer, canAccessTeamPage } = useRBAC();
 
     const menuItems = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboardIcon },
         { name: 'Projects', href: '/projects', icon: FolderOpenIcon },
-        { name: 'Team', href: '/team', icon: UsersIcon },
+        ...(canAccessTeamPage ? [{ name: 'Team', href: '/team', icon: UsersIcon }] : []),
     ]
 
     const sidebarRef = useRef(null);
@@ -30,6 +33,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                 ? 'bg-gradient-to-r from-blue-500/15 to-indigo-500/5 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-500/20 shadow-sm'
                 : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-100/80 dark:hover:bg-zinc-800/60 hover:text-gray-900 dark:hover:text-zinc-100'
         }`;
+
+    const showWorkspaceGroup = canManageWorkspaceSettings || canAccessDatabaseViewer;
 
     return (
         <div
@@ -63,18 +68,30 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                 <p className='text-sm truncate'>{item.name}</p>
                             </NavLink>
                         ))}
-                        <div className="mt-4 pt-3 border-t border-gray-100 dark:border-zinc-800/80">
-                            <p className="text-[10px] font-semibold text-gray-400 dark:text-zinc-600 uppercase tracking-widest px-3 pb-1">Workspace</p>
-                            <NavLink to="/settings" className={navLinkClass}>
-                                <SettingsIcon size={16} />
-                                <p className='text-sm truncate'>Settings</p>
-                            </NavLink>
-                        </div>
+                        {showWorkspaceGroup && (
+                            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-zinc-800/80">
+                                <p className="text-[10px] font-semibold text-gray-400 dark:text-zinc-600 uppercase tracking-widest px-3 pb-1">Workspace</p>
+                                {canManageWorkspaceSettings && (
+                                    <NavLink to="/settings" className={navLinkClass}>
+                                        <SettingsIcon size={16} />
+                                        <p className='text-sm truncate'>Settings</p>
+                                    </NavLink>
+                                )}
+                                {canAccessDatabaseViewer && (
+                                    <NavLink to="/database" className={navLinkClass}>
+                                        <DatabaseIcon size={16} />
+                                        <p className='text-sm truncate'>Admin IT Panel</p>
+                                    </NavLink>
+                                )}
+                            </div>
+                        )}
                     </div>
                     <MyTasksSidebar />
                     <ProjectSidebar />
                 </div>
             </div>
+            <hr className='border-gray-100 dark:border-zinc-800/80 mt-auto' />
+            <PersonalRBACBox />
         </div>
     )
 }

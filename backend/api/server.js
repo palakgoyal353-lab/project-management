@@ -4,6 +4,7 @@ import cors from "cors";
 import workspaceRoutes from "./routes/workspace.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import taskRoutes from "./routes/task.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.get("/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api/workspaces", workspaceRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

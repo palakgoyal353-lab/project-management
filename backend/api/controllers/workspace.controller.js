@@ -48,7 +48,13 @@ export const createWorkspace = async (req, res) => {
                 slug: slug || name.toLowerCase().replace(/ /g, '-') + '-' + Date.now(),
                 description,
                 ownerId: user.id,
-                image_url: image_url || ""
+                image_url: image_url || "",
+                members: {
+                    create: {
+                        userId: user.id,
+                        role: "ADMIN"
+                    }
+                }
             },
             include: {
                 members: { include: { user: true } },
@@ -115,11 +121,11 @@ export const inviteMember = async (req, res) => {
         // Upsert workspace membership (prevent duplicates)
         const member = await prisma.workspaceMember.upsert({
             where: { userId_workspaceId: { userId: user.id, workspaceId } },
-            update: { role: role === 'ADMIN' ? 'ADMIN' : 'MEMBER' },
+            update: { role: role || 'MEMBER' },
             create: {
                 userId: user.id,
                 workspaceId,
-                role: role === 'ADMIN' ? 'ADMIN' : 'MEMBER'
+                role: role || 'MEMBER'
             },
             include: { user: true }
         });

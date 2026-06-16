@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { format } from "date-fns";
+import toast from "react-hot-toast";
+import { addTaskAsync } from "../feature/WorkspaceSlice";
 
 export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, projectId }) {
+    const dispatch = useDispatch();
     const currentWorkspace = useSelector((state) => state.workspace?.currentWorkspace || null);
     const project = currentWorkspace?.projects.find((p) => p.id === projectId);
     const teamMembers = project?.members || [];
@@ -21,8 +24,29 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-
+        if (!formData.title.trim()) {
+            toast.error("Task title is required");
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            await dispatch(addTaskAsync({
+                projectId,
+                title: formData.title,
+                description: formData.description,
+                type: formData.type,
+                status: formData.status,
+                priority: formData.priority,
+                assigneeId: formData.assigneeId || undefined,
+                due_date: formData.due_date || undefined,
+            })).unwrap();
+            toast.success("Task created successfully!");
+            setShowCreateTask(false);
+        } catch (error) {
+            toast.error(error?.message || "Failed to create task");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return showCreateTask ? (

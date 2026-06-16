@@ -1,9 +1,48 @@
 import { useEffect, useState } from "react";
-import { UsersIcon, Search, UserPlus, Shield, Activity } from "lucide-react";
+import { UsersIcon, Search, UserPlus, Shield, Activity, ShieldAlert } from "lucide-react";
 import InviteMemberDialog from "../components/InviteMemberDailog";
 import { useSelector } from "react-redux";
+import { useRBAC } from "../hooks/useRBAC";
+
+const ROLE_STYLES = {
+    ADMIN_IT: {
+        label: "Admin IT",
+        style: "bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/10"
+    },
+    IT: {
+        label: "IT",
+        style: "bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-500/10"
+    },
+    MANAGER: {
+        label: "Manager",
+        style: "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/10"
+    },
+    TEAM_LEAD: {
+        label: "Team Lead",
+        style: "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-500/10"
+    },
+    MEMBER: {
+        label: "Member",
+        style: "bg-zinc-100 dark:bg-zinc-700/40 text-zinc-600 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700/20"
+    },
+    ADMIN: {
+        label: "Admin",
+        style: "bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/10"
+    }
+};
+
+const getRoleBadge = (role) => {
+    const r = role?.toUpperCase() || "MEMBER";
+    const data = ROLE_STYLES[r] || { label: role, style: "bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300" };
+    return (
+        <span className={`px-2.5 py-1 text-xs font-semibold rounded-md shadow-sm ${data.style}`}>
+            {data.label}
+        </span>
+    );
+};
 
 const Team = () => {
+    const { canAccessTeamPage, role } = useRBAC();
 
     const [tasks, setTasks] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -19,10 +58,30 @@ const Team = () => {
     );
 
     useEffect(() => {
-        setUsers(currentWorkspace?.members || []);
-        setTasks(currentWorkspace?.projects?.reduce((acc, project) => [...acc, ...project.tasks], []) || []);
-    }, [currentWorkspace]);
+        if (canAccessTeamPage) {
+            setUsers(currentWorkspace?.members || []);
+            setTasks(currentWorkspace?.projects?.reduce((acc, project) => [...acc, ...project.tasks], []) || []);
+        }
+    }, [currentWorkspace, canAccessTeamPage]);
 
+    if (!canAccessTeamPage) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-fade-up">
+                <div className="w-16 h-16 rounded-2xl bg-red-100 dark:bg-red-950/30 flex items-center justify-center shadow-lg shadow-red-500/10 mb-6">
+                    <ShieldAlert className="w-8 h-8 text-red-600 dark:text-red-400" />
+                </div>
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2" style={{fontFamily:'Outfit,sans-serif'}}>
+                    Access Denied
+                </h2>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+                    You do not have permission to view the team workspace directory. Your current role is <span className="font-bold text-red-500 font-mono capitalize">{role?.replace('_', ' ').toLowerCase()}</span>.
+                </p>
+                <div className="text-xs text-zinc-400 border border-zinc-200 dark:border-zinc-700/60 rounded-xl px-4 py-3 bg-zinc-50 dark:bg-zinc-800/40 font-mono">
+                    Required Roles: Admin IT, IT, Manager, Team Lead
+                </div>
+            </div>
+        );
+    }
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
             {/* Header */}
@@ -145,14 +204,7 @@ const Team = () => {
                                                 {user.user?.email}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap">
-                                                <span
-                                                    className={`px-2.5 py-1 text-xs font-medium rounded-md ${user.role === "ADMIN"
-                                                        ? "bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400"
-                                                        : "bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
-                                                    }`}
-                                                >
-                                                    {user.role || "MEMBER"}
-                                                </span>
+                                                {getRoleBadge(user.role)}
                                             </td>
                                         </tr>
                                     ))}
@@ -188,14 +240,7 @@ const Team = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    <span
-                                        className={`px-2.5 py-1 text-xs font-medium rounded-md ${user.role === "ADMIN"
-                                            ? "bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400"
-                                            : "bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
-                                        }`}
-                                    >
-                                        {user.role || "MEMBER"}
-                                    </span>
+                                    {getRoleBadge(user.role)}
                                 </div>
                             ))}
                         </div>

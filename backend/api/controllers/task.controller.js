@@ -42,7 +42,8 @@ export const createTask = async (req, res) => {
                 priority,
                 assigneeId: user.id,
                 due_date: due_date ? new Date(due_date) : new Date(),
-            }
+            },
+            include: { assignee: true }
         });
         res.status(201).json(newTask);
     } catch (error) {
@@ -60,7 +61,8 @@ export const updateTask = async (req, res) => {
 
         const updatedTask = await prisma.task.update({
             where: { id },
-            data
+            data,
+            include: { assignee: true }
         });
         res.json(updatedTask);
     } catch (error) {
