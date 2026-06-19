@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "postinstall": "npx prisma generate",
-    "start": "prisma generate && node api/server.js",
-    "Server": "nodemon server.js"
+    "dev": "nodemon api/server.js",
+    "start": "node api/server.js"
   },
   "keywords": [],
   "author": "",
@@ -17,17 +17,17 @@
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/adapter-better-sqlite3": "^7.8.0",
     "@prisma/adapter-neon": "^7.6.0",
-    "@prisma/client": "^7.7.0",
+    "@prisma/client": "^5.22.0",
     "better-sqlite3": "^12.10.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.0",
     "express": "^5.2.1",
     "inngest": "^4.2.2",
     "nodemon": "^3.1.14",
+    "prisma": "^5.22.0",
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "prisma": "^7.7.0",
     "tsx": "^4.21.0"
   }
 }

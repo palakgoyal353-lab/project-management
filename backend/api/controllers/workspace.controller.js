@@ -17,6 +17,7 @@ export const getWorkspaces = async (req, res) => {
                 }
             }
         });
+        console.log(JSON.stringify(workspaces, null, 2));
         res.json(workspaces);
     } catch (error) {
         console.error("Error fetching workspaces:", error);

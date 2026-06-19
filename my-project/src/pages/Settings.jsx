@@ -114,12 +114,44 @@ const Settings = () => {
     };
 
     const leaderPerms = [
-        { key: 'canCreateTask', label: 'Create Task', value: matrix.canCreateTask?.leader ?? false },
-        { key: 'canDeleteTask', label: 'Delete Task', value: matrix.canDeleteTask?.leader ?? false },
-        { key: 'canManageProjectSettings', label: 'Manage Project Settings', value: matrix.canManageProjectSettings?.leader ?? false },
-        { key: 'canAccessDatabaseViewer', label: 'View Database (Read-Only)', value: matrix.canAccessDatabaseViewer?.leader ?? false },
-        { key: 'canAccessTeamPage', label: 'Access Team Page', value: matrix.canAccessTeamPage?.leader ?? false },
-    ];
+    {
+        key: 'canCreateTask',
+        label: 'Create Task',
+        value: matrix.canCreateTask?.leader ?? false
+    },
+    {
+        key: 'canDeleteTask',
+        label: 'Delete Task',
+        value: matrix.canDeleteTask?.leader ?? false
+    },
+    {
+        key: 'canManageProjectSettings',
+        label: 'Manage Project Settings',
+        value: matrix.canManageProjectSettings?.leader ?? false
+    },
+    {
+        key: 'canAccessDatabaseViewer',
+        label: 'View Database (Read Only)',
+        value: matrix.canAccessDatabaseViewer?.leader ?? false
+    },
+    {
+        key: 'canAccessTeamPage',
+        label: 'Access Team Page',
+        value: matrix.canAccessTeamPage?.leader ?? false
+    },
+
+    // NEW PERMISSIONS
+    {
+        key: 'canInviteMembers',
+        label: 'Invite Members',
+        value: matrix.canInviteMembers?.leader ?? false
+    },
+    {
+        key: 'canCreateProject',
+        label: 'Create Projects',
+        value: matrix.canCreateProject?.leader ?? false
+    }
+];
 
     const workerPerms = [
         { key: 'canViewProjects', label: 'View Projects & Timelines', value: matrix.canViewProjects?.worker ?? false },

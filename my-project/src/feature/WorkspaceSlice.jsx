@@ -11,10 +11,18 @@ export const addWorkspaceAsync = createAsyncThunk("workspace/addWorkspaceAsync",
     return response.data;
 });
 
-export const addProjectAsync = createAsyncThunk("workspace/addProjectAsync", async (data) => {
-    const response = await apiClient.post('/api/projects', data);
-    return response.data;
-});
+export const addProjectAsync = createAsyncThunk(
+    "workspace/addProjectAsync",
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await apiClient.post('/api/projects', data);
+            return response.data;
+        } catch (err) {
+            console.error("API ERROR:", err.response?.data || err.message);
+            return rejectWithValue(err.response?.data || "API failed");
+        }
+    }
+);
 
 export const updateProjectAsync = createAsyncThunk("workspace/updateProjectAsync", async (data) => {
     const response = await apiClient.put(`/api/projects/${data.id}`, data);

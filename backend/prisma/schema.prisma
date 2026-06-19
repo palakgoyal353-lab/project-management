@@ -3,7 +3,8 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -61,6 +62,7 @@ model Project {
     team_lead   String
     workspaceId String
     progress    Int       @default(0)
+    isArchived  Boolean   @default(false)  // ✅ ADD THIS
     createdAt   DateTime  @default(now())
     updatedAt   DateTime  @updatedAt
     members     ProjectMember[]

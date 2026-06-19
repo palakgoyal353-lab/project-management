@@ -22,22 +22,48 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
 
     const dispatch = useDispatch();
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!currentWorkspace) return;
-        setIsSubmitting(true);
-        try {
-            await dispatch(addProjectAsync({ ...formData, workspaceId: currentWorkspace.id })).unwrap();
-            setIsDialogOpen(false);
-            setFormData({
-                name: "", description: "", status: "PLANNING", priority: "MEDIUM",
-                start_date: "", end_date: "", team_members: [], team_lead: "", progress: 0,
-            });
-        } catch (error) {
-            console.error("Failed to create project", error);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+    e.preventDefault();
+    if (!currentWorkspace) return;
+
+    setIsSubmitting(true);
+
+    try {
+        const cleanedData = {
+            ...formData,
+            team_lead: formData.team_lead || null,
+            start_date: formData.start_date || null,
+            end_date: formData.end_date || null,
+        };
+
+        console.log("SENDING DATA:", cleanedData);
+
+        await dispatch(
+            addProjectAsync({
+                ...cleanedData,
+                workspaceId: currentWorkspace.id,
+            })
+        ).unwrap();
+
+        setIsDialogOpen(false);
+
+        setFormData({
+            name: "",
+            description: "",
+            status: "PLANNING",
+            priority: "MEDIUM",
+            start_date: "",
+            end_date: "",
+            team_members: [],
+            team_lead: "",
+            progress: 0,
+        });
+
+    } catch (error) {
+        console.error("CREATE PROJECT FAILED:", error);
+    } finally {
+        setIsSubmitting(false);
+    }
+};
 
     const removeTeamMember = (email) => {
         setFormData((prev) => ({ ...prev, team_members: prev.team_members.filter(m => m !== email) }));
@@ -113,7 +139,7 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                         <select value={formData.team_lead} onChange={(e) => setFormData({ ...formData, team_lead: e.target.value, team_members: e.target.value ? [...new Set([...formData.team_members, e.target.value])] : formData.team_members, })} className="w-full px-3 py-2 rounded dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 mt-1 text-zinc-900 dark:text-zinc-200 text-sm" >
                             <option value="">No lead</option>
                             {currentWorkspace?.members?.map((member) => (
-                                <option key={member.user.email} value={member.user.email}>
+                                <option key={member.user.email} value={member.user.id}>
                                     {member.user.email}
                                 </option>
                             ))}

@@ -5,8 +5,14 @@ export const getTasks = async (req, res) => {
         const { projectId } = req.query;
         const whereClause = projectId ? { projectId } : {};
         const tasks = await prisma.task.findMany({
-            where: whereClause
-        });
+    where: {
+        assigneeId: req.user.id   // ✅ ONLY MY TASKS
+    },
+    include: {
+        project: true,
+        assignee: true
+    }
+});
         res.json(tasks);
     } catch (error) {
         console.error("Error fetching tasks:", error);

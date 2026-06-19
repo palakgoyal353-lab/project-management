@@ -4,7 +4,12 @@ import { Plus, Search, FolderOpen } from "lucide-react";
 import ProjectCard from "../components/ProjectCard";
 import CreateProjectDialog from "../components/CreateProjectDialog";
 import { useRBAC } from "../hooks/useRBAC";
-
+<button
+    onClick={() => generateProjectReport(projects)}
+    className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-md text-sm"
+>
+    📄 Export Project Report
+</button>
 export default function Projects() {
     const { canCreateProject } = useRBAC();
 
@@ -114,3 +119,96 @@ export default function Projects() {
         </div>
     );
 }
+const generateProjectReport = (projects = []) => {
+    const reportWindow = window.open("", "_blank");
+
+    const totalProjects = projects.length;
+    const totalTasks = projects.reduce((acc, p) => acc + (p.tasks?.length || 0), 0);
+
+    const completedTasks = projects.reduce(
+        (acc, p) =>
+            acc + (p.tasks || []).filter((t) => t.status === "DONE").length,
+        0
+    );
+
+    const inProgressTasks = projects.reduce(
+        (acc, p) =>
+            acc + (p.tasks || []).filter((t) => t.status === "IN_PROGRESS").length,
+        0
+    );
+
+    const todoTasks = projects.reduce(
+        (acc, p) =>
+            acc + (p.tasks || []).filter((t) => t.status === "TODO").length,
+        0
+    );
+
+    const html = `
+    <html>
+        <head>
+            <title>Project Report</title>
+            <style>
+                body {
+                    font-family: Arial;
+                    padding: 20px;
+                }
+                h1 { color: #333; }
+                .box {
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    margin-bottom: 10px;
+                    border-radius: 6px;
+                }
+                .stats {
+                    display: flex;
+                    gap: 15px;
+                    margin-bottom: 20px;
+                }
+                .stat {
+                    padding: 10px;
+                    border-radius: 6px;
+                    background: #f5f5f5;
+                    flex: 1;
+                    text-align: center;
+                }
+            </style>
+        </head>
+
+        <body>
+            <h1>📊 Project Management Report</h1>
+
+            <div class="stats">
+                <div class="stat">Total Projects<br/><b>${totalProjects}</b></div>
+                <div class="stat">Total Tasks<br/><b>${totalTasks}</b></div>
+                <div class="stat">Completed<br/><b>${completedTasks}</b></div>
+                <div class="stat">In Progress<br/><b>${inProgressTasks}</b></div>
+                <div class="stat">To Do<br/><b>${todoTasks}</b></div>
+            </div>
+
+            <h2>Project Details</h2>
+
+            ${projects
+                .map(
+                    (p) => `
+                <div class="box">
+                    <h3>${p.title || "Untitled Project"}</h3>
+                    <p><b>Status:</b> ${p.status || "N/A"}</p>
+                    <p><b>Tasks:</b> ${p.tasks?.length || 0}</p>
+                    <p><b>Completed:</b> ${
+                        (p.tasks || []).filter((t) => t.status === "DONE").length
+                    }</p>
+                </div>
+            `
+                )
+                .join("")}
+
+            <script>
+                window.print();
+            </script>
+        </body>
+    </html>
+    `;
+
+    reportWindow.document.write(html);
+    reportWindow.document.close();
+};

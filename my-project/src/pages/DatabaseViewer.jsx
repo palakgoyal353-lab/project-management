@@ -100,12 +100,39 @@ function ConfirmModal({ row, tableKey, onConfirm, onCancel, deleting }) {
 
 /* ── Table View ── */
 function TableView({ tableKey, rows, onDelete, canModifyDatabase }) {
-  const [search, setSearch] = useState('');
-  const [sort,   setSort]   = useState({ col: null, dir: 'asc' });
-  const [page,   setPage]   = useState(1);
-  const PER_PAGE = 15;
+ const [search, setSearch] = useState('');
+const [sort, setSort] = useState({ col: null, dir: 'asc' });
+const [page, setPage] = useState(1);
+const [selectedUser, setSelectedUser] = useState('');
+const workspaces = useSelector(state => state.workspace?.workspaces || []);
 
-  const columns = rows.length ? Object.keys(rows[0]) : [];
+const userMap = useMemo(() => {
+  const map = {};
+
+  workspaces.forEach(ws => {
+    ws.members?.forEach(m => {
+      map[m.userId] = m.user?.name;
+    });
+  });
+
+  return map;
+}, [workspaces]);
+
+const PER_PAGE = 15;
+
+const columns = rows.length ? Object.keys(rows[0]) : [];
+// Find whichever field exists
+const userField =
+  columns.includes('name') ? 'name' :
+  columns.includes('ownerId') ? 'ownerId' :
+  columns.includes('userId') ? 'userId' :
+  columns.includes('assigneeId') ? 'assigneeId' :
+  null;
+
+const users = userField
+  ? [...new Set(rows.map(row => row[userField]).filter(Boolean))]
+  : [];
+
 
   const filtered = useMemo(() => {
     if (!search.trim()) return rows;
@@ -120,9 +147,20 @@ function TableView({ tableKey, rows, onDelete, canModifyDatabase }) {
       return sort.dir === 'asc' ? cmp : -cmp;
     });
   }, [filtered, sort]);
+  const displayedRows = useMemo(() => {
+  if (!selectedUser || !userField) return sorted;
 
-  const totalPages = Math.ceil(sorted.length / PER_PAGE);
-  const paged      = sorted.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  return sorted.filter(
+    row => String(row[userField]) === String(selectedUser)
+  );
+}, [sorted, selectedUser, userField]);
+
+ const totalPages = Math.ceil(displayedRows.length / PER_PAGE);
+
+const paged = displayedRows.slice(
+  (page - 1) * PER_PAGE,
+  page * PER_PAGE
+);
 
   const toggleSort = col => {
     setSort(s => s.col === col ? { col, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { col, dir: 'asc' });
@@ -130,14 +168,39 @@ function TableView({ tableKey, rows, onDelete, canModifyDatabase }) {
   };
 
   const exportCsv = () => {
-    if (!sorted.length) return;
-    const blob = new Blob(
-      [columns.join(',') + '\n' + sorted.map(r => columns.map(c => JSON.stringify(r[c] ?? '')).join(',')).join('\n')],
-      { type: 'text/csv' }
+  let exportRows = sorted;
+
+  if (selectedUser && userField) {
+    exportRows = sorted.filter(
+      row => String(row[userField]) === String(selectedUser)
     );
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${tableKey}.csv` });
-    a.click(); URL.revokeObjectURL(a.href);
-  };
+  }
+
+  if (!exportRows.length) return;
+
+  const csvContent =
+    columns.join(',') +
+    '\n' +
+    exportRows
+      .map(r =>
+        columns
+          .map(c => JSON.stringify(r[c] ?? ''))
+          .join(',')
+      )
+      .join('\n');
+
+  const blob = new Blob([csvContent], {
+    type: 'text/csv'
+  });
+
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(blob),
+    download: `${tableKey}.csv`
+  });
+
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
 
   if (!rows.length) return (
     <div className="flex flex-col items-center justify-center py-16 text-zinc-400">
@@ -161,7 +224,28 @@ function TableView({ tableKey, rows, onDelete, canModifyDatabase }) {
             className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition"
           />
         </div>
-        <span className="text-xs text-zinc-400 font-medium tabular-nums">{filtered.length} / {rows.length} rows</span>
+        <span className="text-xs text-zinc-400 font-medium tabular-nums">
+  {displayedRows.length} / {rows.length} rows
+</span>
+  <select
+  value={selectedUser}
+  onChange={(e) => {
+    setSelectedUser(e.target.value);
+    setPage(1);
+  }}
+  className="px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
+>
+  <option value="">All Users</option>
+
+  {users.map(user => (
+   <option key={user} value={user}>
+  {userMap[user] || user}
+</option>
+  ))}
+</select>
+
+
+
         <button id={`db-export-${tableKey}`} onClick={exportCsv} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">
           <DownloadIcon className="w-3.5 h-3.5" /> Export CSV
         </button>

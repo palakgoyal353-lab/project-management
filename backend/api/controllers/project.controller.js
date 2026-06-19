@@ -7,12 +7,18 @@ const projectInclude = {
 
 export const getProjects = async (req, res) => {
     try {
-        const { workspaceId } = req.query;
-        const whereClause = workspaceId ? { workspaceId } : {};
+        const { workspaceId, includeArchived } = req.query;
+
+        const whereClause = {
+            ...(workspaceId && { workspaceId }),
+            ...(includeArchived !== "true" && { isArchived: false })
+        };
+
         const projects = await prisma.project.findMany({
             where: whereClause,
             include: projectInclude
         });
+
         res.json(projects);
     } catch (error) {
         console.error("Error fetching projects:", error);
@@ -38,20 +44,25 @@ export const createProject = async (req, res) => {
         const projectId = id || crypto.randomUUID();
 
         const newProject = await prisma.project.create({
-            data: {
-                id: projectId,
-                name,
-                description,
-                priority: priority || 'MEDIUM',
-                status: status || 'PLANNING',
-                start_date: start_date ? new Date(start_date) : null,
-                end_date: end_date ? new Date(end_date) : null,
-                team_lead: user.id,
-                workspaceId,
-                progress: progress || 0,
-            },
-            include: projectInclude
-        });
+    data: {
+        id: projectId,
+        name,
+        description,
+        priority: priority || 'MEDIUM',
+        status: status || 'PLANNING',
+        start_date: start_date ? new Date(start_date) : null,
+        end_date: end_date ? new Date(end_date) : null,
+        team_lead: user.id,
+        workspaceId,
+        progress: progress || 0,
+        members: {
+            create: {
+                userId: user.id
+            }
+        }
+    },
+    include: projectInclude
+});
         res.status(201).json(newProject);
     } catch (error) {
         console.error("Error creating project:", error);
@@ -118,4 +129,35 @@ export const addProjectMember = async (req, res) => {
         res.status(500).json({ error: "Failed to add project member" });
     }
 };
+export const archiveProject = async (req, res) => {
+    try {
+        const { id } = req.params;
 
+        const project = await prisma.project.update({
+            where: { id },
+            data: { isArchived: true },
+            include: projectInclude
+        });
+
+        res.json(project);
+    } catch (error) {
+        console.error("Error archiving project:", error);
+        res.status(500).json({ error: "Failed to archive project" });
+    }
+};
+export const restoreProject = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const project = await prisma.project.update({
+            where: { id },
+            data: { isArchived: false },
+            include: projectInclude
+        });
+
+        res.json(project);
+    } catch (error) {
+        console.error("Error restoring project:", error);
+        res.status(500).json({ error: "Failed to restore project" });
+    }
+};
