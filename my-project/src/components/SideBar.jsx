@@ -6,6 +6,7 @@ import { DatabaseIcon, FolderOpenIcon, LayoutDashboardIcon, SettingsIcon, UsersI
 import WorkspaceDropdown from './WorkspaceDropdown'
 import { useRBAC } from '../hooks/useRBAC'
 import PersonalRBACBox from './PersonalRBACBox'
+import { ShieldCheckIcon } from 'lucide-react'
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     const { canManageWorkspaceSettings, canAccessDatabaseViewer, canAccessTeamPage } = useRBAC();
@@ -14,6 +15,11 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         { name: 'Dashboard', href: '/', icon: LayoutDashboardIcon },
         { name: 'Projects', href: '/projects', icon: FolderOpenIcon },
         ...(canAccessTeamPage ? [{ name: 'Team', href: '/team', icon: UsersIcon }] : []),
+        {
+    name: 'Roles',
+    href: '/roles',
+    icon: ShieldCheckIcon
+}
     ]
 
     const sidebarRef = useRef(null);

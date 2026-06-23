@@ -54,6 +54,19 @@ export const savePermissionMatrix = (matrix) => {
 export const resetPermissionMatrix = () => {
   localStorage.removeItem('rbac_company_rules');
 };
+export const getCustomRoles = () => {
+  try {
+    const roles = localStorage.getItem("roles");
+
+    if (roles) {
+      return JSON.parse(roles);
+    }
+  } catch {
+    return [];
+  }
+
+  return [];
+};
 
 export const useRBAC = () => {
   const { user } = useUser();
@@ -79,6 +92,11 @@ export const useRBAC = () => {
   };
 
   const role = getRole();
+  const customRoles = getCustomRoles();
+
+const customRole = customRoles.find(
+  (r) => r.name === role
+);
 
   const isAdmin = ADMIN_ROLES.has(role);
   const isLeader = LEADER_ROLES.has(role);
@@ -109,11 +127,27 @@ export const useRBAC = () => {
     canCreateTask:              resolve('canCreateTask'),
     canDeleteTask:              resolve('canDeleteTask'),
     canManageProjectSettings:   resolve('canManageProjectSettings'),
-    canAccessDatabaseViewer:    resolve('canAccessDatabaseViewer'),
-    canAccessTeamPage:          resolve('canAccessTeamPage'),
-    canViewProjects:            resolve('canViewProjects'),
-    canViewDashboard:           resolve('canViewDashboard'),
-    canViewCalendar:            resolve('canViewCalendar'),
+    canAccessDatabaseViewer:
+  customRole?.database ??
+  resolve('canAccessDatabaseViewer'),
+
+canAccessTeamPage:
+  customRole?.team ??
+  resolve('canAccessTeamPage'),
+
+canViewProjects:
+  customRole?.projects ??
+  resolve('canViewProjects'),
+
+canViewDashboard:
+  customRole?.dashboard ??
+  resolve('canViewDashboard'),
+
+canViewCalendar:
+  customRole?.tasks ??
+  resolve('canViewCalendar'),
+  canManageTasks:
+  customRole?.tasks ?? resolve('canCreateTask'),
     canAccessSidebarMenu:       isAdmin || isLeader,
   };
 
